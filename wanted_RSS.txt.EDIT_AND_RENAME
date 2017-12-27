@@ -1,0 +1,9 @@
+Each line in this file will be matched against the names of files in the RSS feed.
+
+If a line matches part of a filename, the file gets downloaded.
+
+So this file should look like:
+
+Some TV Show
+Some Other TV Show
+A Third TV Show
