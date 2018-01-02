@@ -57,6 +57,9 @@ class RSS_downloader:
                 self.RSS_DOWNLOADS_FILE = join(dirname(__file__), self.RSS_DOWNLOADS_FILE)
                 logger('Creating new downloads list: ' + self.RSS_DOWNLOADS_FILE + '\n')
                 print('Creating new downloads list: ' + self.RSS_DOWNLOADS_FILE + '\n')
+            else:
+                self.RSS_DOWNLOADS_FILE = join(dirname(__file__), self.RSS_DOWNLOADS_FILE)
+
 
         if not isfile(self.WANTED_SHOWS_FILE):
             if not isfile(join(dirname(__file__), self.WANTED_SHOWS_FILE)):
