@@ -121,6 +121,10 @@ class RSS_downloader:
 
     def processFeed(self, url):
         d = feedparser.parse(url)
+        if d.bozo > 0:
+            logger('Failed to parse feed: ' + url)
+            logger(d.bozo_exception)
+            errorExit()
         for ep in d.entries:
             if self.isShowWanted(ep.title):
                 logger("Matched: " + ep.title)
