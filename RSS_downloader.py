@@ -74,8 +74,14 @@ class RSS_downloader:
             print("Output dir doesn't exist: " + self.OUTPUT_DIR)
             errorExit()
 
+        self.WANTED_SHOWS = []
+
         with open(self.WANTED_SHOWS_FILE, 'r') as tempfile:
-            self.WANTED_SHOWS = tempfile.read().splitlines()
+            for show in tempfile.read().splitlines():
+                show = show.strip()
+                if len(show) < 3 or show.startswith == "#":
+                    continue
+                self.WANTED_SHOWS.append(show)
 
         logger('URL1: ' + self.URL1)
         logger('OUTPUT_DIR: ' + self.OUTPUT_DIR)
