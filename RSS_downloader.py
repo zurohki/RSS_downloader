@@ -4,6 +4,8 @@ import configparser
 import feedparser
 from os.path import isfile, isdir, dirname, join
 import datetime
+import requests
+import urllib.parse
 
 def logger(logthis):
     #print(str(logthis))
@@ -13,6 +15,7 @@ def logger(logthis):
 
 def errorExit():
     #input('\nPress the Enter key to exit')
+    print('Failed.')
     exit(1)
 
 class RSS_downloader:
@@ -90,7 +93,11 @@ class RSS_downloader:
         logger(self.WANTED_SHOWS)
         return
 
-    def hasFileBeenDownloaded(self, filename):
+    def hasFileBeenDownloaded(self, filename, url):
+        if url.startswith('https://') and url.endswith('.torrent'):
+            filename = urllib.parse.unquote(url).split('/')[-1]
+            if filename.endswith('.torrent'):
+                filename = filename[0:len(filename) - 8]
         with open(self.RSS_DOWNLOADS_FILE, 'r') as fin:
             for line in fin:
                 line = line.strip()
@@ -107,22 +114,47 @@ class RSS_downloader:
     def downloadMirrorLink(self, filename, mirrorLink):
         logger("To download: " + filename + '\n\n' + mirrorLink + '\n')
         torrentContent = 'd10:magnet-uri' + str(len(mirrorLink)) + ':' + mirrorLink + 'e'
-        logger("torrentContent: " + torrentContent + '\n')
+        #logger("torrentContent: " + torrentContent + '\n')
         torrentFile = join(self.OUTPUT_DIR, filename + '.torrent')
         logger("Writing to: " + torrentFile)
         if not isfile(torrentFile):
-            with open(torrentFile, 'w') as newTorrentFile:
+            with open(torrentFile, 'x') as newTorrentFile:
                 newTorrentFile.write(torrentContent)
                 print("Saved: " + torrentFile)
-                with open(self.RSS_DOWNLOADS_FILE, 'a') as downloaded:
-                    downloaded.write(filename + '\n')
         else:
             print('File exists: ' + torrentFile)
+        with open(self.RSS_DOWNLOADS_FILE, 'a') as downloaded:
+            downloaded.write(filename + '\n')
+        return
+
+    def downloadTorrentLink(self, filename, torrentLink):
+        filename = urllib.parse.unquote(torrentLink).split('/')[-1]
+        logger("To download: " + filename + '\n\n' + torrentLink + '\n')
+        r = requests.get(torrentLink)
+        r.raise_for_status()
+        torrentContent = r.content
+        #logger("torrentContent: " + torrentContent + '\n')
+        torrentFile = join(self.OUTPUT_DIR, filename)
+        logger("Writing to: " + torrentFile)
+        if not isfile(torrentFile):
+            with open(torrentFile, 'xb') as newTorrentFile:
+                newTorrentFile.write(torrentContent)
+                print("Saved: " + torrentFile)
+        else:
+            print('File exists: ' + torrentFile)
+        with open(self.RSS_DOWNLOADS_FILE, 'a') as downloaded:
+            if filename.endswith('.torrent'):
+                filename = filename[0:len(filename) - 8]
+            downloaded.write(filename + '\n')
         return
 
     def downloadLink(self, filename, link):
-        if link[0:20] == 'magnet:?xt=urn:btih:':
+        if link.startswith('magnet:?xt=urn:btih:'):
             self.downloadMirrorLink(filename, link)
+        elif link.startswith('https://') and link.endswith('.torrent'):
+            self.downloadTorrentLink(filename, link)
+        else:
+            logger("Don't know what to do with download link: " + link)
         return
 
     def processFeed(self, url):
@@ -130,12 +162,14 @@ class RSS_downloader:
         if d.bozo > 0:
             logger('Failed to parse feed: ' + url)
             logger(d.bozo_exception)
+            print('Failed to parse feed: ' + url)
+            print(d.bozo_exception)
             errorExit()
         for ep in d.entries:
             if self.isShowWanted(ep.title):
                 logger("Matched: " + ep.title)
-                if not self.hasFileBeenDownloaded(ep.title):
-                    logger("Downloading: " + ep.title)
+                if not self.hasFileBeenDownloaded(ep.title, ep.link):
+                    logger("Downloading: " + ep.title + " at " + ep.link)
                     self.downloadLink(ep.title, ep.link)
         return
 
