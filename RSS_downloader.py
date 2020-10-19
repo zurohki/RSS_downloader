@@ -93,11 +93,15 @@ class RSS_downloader:
         logger(self.WANTED_SHOWS)
         return
 
+    def getFilenameFromLink(self, link):
+        filename = urllib.parse.unquote(link).split('/')[-1]
+        if filename.endswith('.torrent'):
+            filename = filename[0:len(filename) - 8]
+        return filename
+
     def hasFileBeenDownloaded(self, filename, url):
-        if url.startswith('https://') and url.endswith('.torrent'):
-            filename = urllib.parse.unquote(url).split('/')[-1]
-            if filename.endswith('.torrent'):
-                filename = filename[0:len(filename) - 8]
+        if url.startswith('https://'):
+            filename = self.getFilenameFromLink(url)
         with open(self.RSS_DOWNLOADS_FILE, 'r') as fin:
             for line in fin:
                 line = line.strip()
@@ -105,9 +109,12 @@ class RSS_downloader:
                     return True
         return False
 
-    def isShowWanted(self, showName):
+    def isShowWanted(self, showName, showLink):
+        if showLink.startswith('https://'):
+            showName = self.getFilenameFromLink(showLink)
         for wantedShow in self.WANTED_SHOWS:
-            if showName.find(wantedShow) >= 0:
+            if wantedShow in showName:
+                logger("Matched: " + showName + " while looking for: " + wantedShow)
                 return True
         return False
 
@@ -166,8 +173,7 @@ class RSS_downloader:
             print(d.bozo_exception)
             errorExit()
         for ep in d.entries:
-            if self.isShowWanted(ep.title):
-                logger("Matched: " + ep.title)
+            if self.isShowWanted(ep.title, ep.link):
                 if not self.hasFileBeenDownloaded(ep.title, ep.link):
                     logger("Downloading: " + ep.title + " at " + ep.link)
                     self.downloadLink(ep.title, ep.link)
