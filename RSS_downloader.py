@@ -4,8 +4,8 @@ import configparser
 import feedparser
 from os.path import isfile, isdir, dirname, join
 import datetime
-import requests
 import urllib.parse
+import cloudscraper
 
 def logger(logthis):
     #print(str(logthis))
@@ -137,7 +137,8 @@ class RSS_downloader:
     def downloadTorrentLink(self, filename, torrentLink):
         filename = urllib.parse.unquote(torrentLink).split('/')[-1]
         logger("To download: " + filename + '\n\n' + torrentLink + '\n')
-        r = requests.get(torrentLink)
+        scraper = cloudscraper.create_scraper()
+        r = scraper.get(torrentLink)
         r.raise_for_status()
         torrentContent = r.content
         #logger("torrentContent: " + torrentContent + '\n')
