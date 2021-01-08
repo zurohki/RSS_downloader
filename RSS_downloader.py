@@ -110,6 +110,7 @@ class RSS_downloader:
         return False
 
     def isShowWanted(self, showName, showLink):
+        #logger("isShowWanted: " + showName + showLink)
         if showLink.startswith('https://'):
             showName = self.getFilenameFromLink(showLink)
         for wantedShow in self.WANTED_SHOWS:
@@ -137,8 +138,7 @@ class RSS_downloader:
     def downloadTorrentLink(self, filename, torrentLink):
         filename = urllib.parse.unquote(torrentLink).split('/')[-1]
         logger("To download: " + filename + '\n\n' + torrentLink + '\n')
-        scraper = cloudscraper.create_scraper()
-        r = scraper.get(torrentLink)
+        r = self.scraper.get(torrentLink)
         r.raise_for_status()
         torrentContent = r.content
         #logger("torrentContent: " + torrentContent + '\n')
@@ -166,7 +166,10 @@ class RSS_downloader:
         return
 
     def processFeed(self, url):
-        d = feedparser.parse(url)
+        self.scraper = cloudscraper.create_scraper()
+        r = self.scraper.get(url)
+        r.raise_for_status()
+        d = feedparser.parse(r.content)
         if d.bozo > 0:
             logger('Failed to parse feed: ' + url)
             logger(d.bozo_exception)
