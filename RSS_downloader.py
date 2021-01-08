@@ -43,7 +43,8 @@ class RSS_downloader:
         config = configparser.ConfigParser()
         config.read(configFile)
         myconfig = config['RSS-downloader']
-        logger(myconfig)
+        for key in myconfig:
+            logger(key + ": " + myconfig[key])
 
         try:
             self.URL1 = myconfig['URL1']
