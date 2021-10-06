@@ -51,6 +51,7 @@ class RSS_downloader:
             self.OUTPUT_DIR = myconfig['OUTPUT_DIR']
             self.RSS_DOWNLOADS_FILE = myconfig['RSS_DOWNLOADS_FILE']
             self.WANTED_SHOWS_FILE = myconfig['WANTED_SHOWS_FILE']
+            self.BLACKLIST_FILE = myconfig['BLACKLIST_FILE']
         except Exception:
             print('Failed to parse configuration file. Is it broken?\n')
             errorExit()
@@ -72,6 +73,20 @@ class RSS_downloader:
             else:
                 self.WANTED_SHOWS_FILE = join(dirname(__file__), self.WANTED_SHOWS_FILE)
 
+        self.BLACKLIST = []
+
+        if not isfile(self.BLACKLIST_FILE):
+            if isfile(join(dirname(__file__), self.BLACKLIST_FILE)):
+                self.BLACKLIST_FILE = join(dirname(__file__), self.BLACKLIST_FILE)
+
+        if not isfile(self.BLACKLIST_FILE):
+            print('Failed to read blacklist. Continuing.\n')
+        else:
+            with open(self.BLACKLIST_FILE, 'r') as tempfile:
+                for entry in tempfile.read().splitlines():
+                    entry = entry.strip()
+                    self.BLACKLIST.append(entry)
+
         self.OUTPUT_DIR = dirname(self.OUTPUT_DIR)
 
         if not isdir(self.OUTPUT_DIR):
@@ -92,6 +107,7 @@ class RSS_downloader:
         logger('RSS_DOWNLOADS_FILE: ' + self.RSS_DOWNLOADS_FILE)
         logger('WANTED_SHOWS_FILE: ' + self.WANTED_SHOWS_FILE)
         logger(self.WANTED_SHOWS)
+        logger(self.BLACKLIST)
         return
 
     def getFilenameFromLink(self, link):
@@ -117,6 +133,10 @@ class RSS_downloader:
         for wantedShow in self.WANTED_SHOWS:
             if wantedShow in showName:
                 logger("Matched: " + showName + " while looking for: " + wantedShow)
+                for unwantedShow in self.BLACKLIST:
+                    if unwantedShow in showName:
+                        logger("Matched: " + showName + " while checking blacklist for: " + unwantedShow)
+                        return False
                 return True
         return False
 

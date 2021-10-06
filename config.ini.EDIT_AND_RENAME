@@ -8,3 +8,4 @@ output_dir = /home/username/torrents/watch/start/
 # These files can include a path, or they can be in the same dir as the script.
 rss_downloads_file = downloaded_RSS.txt
 wanted_shows_file = wanted_RSS.txt
+blacklist_file = blacklist_RSS.txt
