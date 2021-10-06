@@ -1,0 +1,4 @@
+# If a show matches a line in this file, it won't be downloaded even if it
+# matches the wanted list.
+#
+# Blank lines and lines starting with a '#' are ignored.

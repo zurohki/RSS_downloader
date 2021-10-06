@@ -85,6 +85,8 @@ class RSS_downloader:
             with open(self.BLACKLIST_FILE, 'r') as tempfile:
                 for entry in tempfile.read().splitlines():
                     entry = entry.strip()
+                    if len(entry) < 2 or entry.startswith == "#":
+                        continue
                     self.BLACKLIST.append(entry)
 
         self.OUTPUT_DIR = dirname(self.OUTPUT_DIR)
